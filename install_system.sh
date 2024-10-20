@@ -13,8 +13,8 @@ for device in $(sudo fdisk -l | grep "^Disk /dev" | awk "{print \$2}" | sed "s/:
     i=$((i+1))
     DEVICES[$i]=$device
 done
-echo q
-echo clear
+q
+clear
 read -p "Which device do you wish to install on? " DEVICE
 DEV=${DEVICES[$(($DEVICE+1))]}
 
