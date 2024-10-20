@@ -3,7 +3,7 @@
 echo "Your attached storage devices will now be listed."
 read -p "Press enter to continue." NULL
 
-sudo fdisk -l | less
+#sudo fdisk -l | less
 echo "Detected the following devices:"
 echo
 
@@ -13,8 +13,6 @@ for device in $(sudo fdisk -l | grep "^Disk /dev" | awk "{print \$2}" | sed "s/:
     i=$((i+1))
     DEVICES[$i]=$device
 done
-q
-clear
 read -p "Which device do you wish to install on? " DEVICE
 DEV=${DEVICES[$(($DEVICE+1))]}
 
