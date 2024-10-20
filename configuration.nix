@@ -56,6 +56,7 @@
 
   # Users
   users.users.matt = {
+    initialPassword = "password123";
     isNormalUser = true;
     description = "Matt Knowles";
     extraGroups = [ "networkmanager" "wheel" ];
