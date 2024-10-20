@@ -1,5 +1,5 @@
 #!/bin/sh
-
+#
 echo "Your attached storage devices will now be listed."
 read -p "Press 'q' to exit the list. Press enter to continue." NULL
 
