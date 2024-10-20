@@ -54,7 +54,7 @@ sudo mount /dev/disk/by-label/boot /mnt/boot
 
 echo "installing NixOS..."
 
-sudo nixos-install --flake github:Nandonirv/NixOS#officepc
+sudo nixos-install --flake github:Nandonirv/NixOS#officepc --no-write-lock-file
 
 read -p "Remove installation media and press enter to reboot." NULL
 
