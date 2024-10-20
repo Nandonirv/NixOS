@@ -19,31 +19,7 @@ read -p "Partition ${DEV}? (y/n): " ANSWER
 
 if [ "$ANSWER" = "y" ]; then
     echo "Partitioning ${DEV}..."
-    (
-      echo g # new gpt partition table
-
-      echo n # new partition
-      echo 1 # partition 3
-      echo   # default start sector
-      echo +512M # size is 512M
-
-      echo n # new partition
-      echo 1 # second partition
-      echo   # default start sector
-      echo   # default end sector
-
-      echo t # set type
-      echo 1 # first partition
-      echo 1 # EFI System
-
-      echo t # set type
-      echo 2 # first partition
-      echo 20 # Linux Filesystem
-
-      echo p # print layout
-
-      echo w # write changes
-    ) | sudo fdisk ${DEV}
+    printf "label: gpt\n,550M,U\n,,L\n" | sfdisk ${DEV}
 else
     echo "Cancelled."
     exit
