@@ -52,10 +52,6 @@ sudo mount /dev/disk/by-label/nixos /mnt
 sudo mkdir -p /mnt/boot                      
 sudo mount /dev/disk/by-label/boot /mnt/boot
 
-echo "generating NixOS configuration..."
-
-sudo nixos-generate-config --root /mnt
-
 echo "installing NixOS..."
 
 sudo nixos-install --flake https://github.com/Nandonirv/NixOS#officepc
