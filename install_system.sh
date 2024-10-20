@@ -1,10 +1,9 @@
 #!/bin/sh
 #
 echo "Your attached storage devices will now be listed."
-read -p "Press 'q' to exit the list. Press enter to continue." NULL
+read -p "Press enter to continue." NULL
 
 sudo fdisk -l | less
-
 echo "Detected the following devices:"
 echo
 
@@ -14,16 +13,15 @@ for device in $(sudo fdisk -l | grep "^Disk /dev" | awk "{print \$2}" | sed "s/:
     i=$((i+1))
     DEVICES[$i]=$device
 done
-
-echo
+echo q
+echo clear
 read -p "Which device do you wish to install on? " DEVICE
-
 DEV=${DEVICES[$(($DEVICE+1))]}
 
-read -p "Will now partition ${DEV}. Ok? Type 'go': " ANSWER
+read -p "Partition ${DEV}? (y/n): " ANSWER
 
-if [ "$ANSWER" = "go" ]; then
-    echo "partitioning ${DEV}..."
+if [ "$ANSWER" = "y" ]; then
+    echo "Partitioning ${DEV}..."
     (
       echo g # new gpt partition table
 
@@ -47,16 +45,12 @@ if [ "$ANSWER" = "go" ]; then
 
       echo p # print layout
 
-      echo w # write changes
+      #echo w # write changes
     ) | sudo fdisk ${DEV}
 else
-    echo "cancelled."
+    echo "Cancelled."
     exit
 fi
-
-
-echo "--------------------------------------------------------------------------------"
-echo "getting created partition names..."
 
 i=1
 for part in $(sudo fdisk -l | grep $DEV | grep -v "," | awk '{print $1}'); do
@@ -68,6 +62,7 @@ done
 P1=${PARTITIONS[2]}
 P2=${PARTITIONS[3]}
 
+echo clear
 read -p "Press enter to install NixOS." NULL
 
 echo "making filesystem on ${P2}..."
