@@ -35,7 +35,7 @@ done
 P1=${PARTITIONS[2]}
 P2=${PARTITIONS[3]}
 
-echo clear
+clear
 read -p "Press enter to install NixOS." NULL
 
 echo "making filesystem on ${P2}..."
