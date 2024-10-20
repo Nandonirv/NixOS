@@ -45,7 +45,7 @@ if [ "$ANSWER" = "y" ]; then
 
       echo p # print layout
 
-      #echo w # write changes
+      echo w # write changes
     ) | sudo fdisk ${DEV}
 else
     echo "Cancelled."
