@@ -6,12 +6,12 @@
   boot.kernelModules = [ "kvm-amd" ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/195b630b-6b40-4857-bbbb-6f00e12a53fc";
+    { device = "/dev/disk/by-label/nixos";
       fsType = "ext4";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/8FC1-E67D";
+    { device = "/dev/disk/by-label/boot";
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
