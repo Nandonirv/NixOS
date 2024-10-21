@@ -13,12 +13,12 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" =
+  fileSystems."/mnt" =
     { device = "/dev/disk/by-label/nixos";
       fsType = "ext4";
     };
 
-  fileSystems."/boot" =
+  fileSystems."/mnt/boot" =
     { device = "/dev/disk/by-label/boot";
       fsType = "vfat";
       options = [ "umask=0077" ];
