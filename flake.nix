@@ -29,14 +29,14 @@
           home-manager.users.matt = import ./home-manager/home.nix;
         }
 
-       # Enable Cosmic DE
-       #{
-        # nix.settings = {
-         #  substituters = [ "https://cosmic.cachix.org/" ];
-          # trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
-       #  };
-     #  }
-      # nixos-cosmic.nixosModules.default
+        Enable Cosmic DE
+       {
+         nix.settings = {
+           substituters = [ "https://cosmic.cachix.org/" ];
+           trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
+         };
+       }
+       nixos-cosmic.nixosModules.default
             
       ];
     };
