@@ -55,7 +55,6 @@ cd /mnt
 
 echo "installing NixOS..."
 
-sudo nixos-generate-config --root /mnt
 sudo nixos-install --flake github:Nandonirv/NixOS#officepc --no-write-lock-file
 
 echo "Installation finished."
