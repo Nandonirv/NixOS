@@ -62,8 +62,8 @@
   ];
   
   # Enable Greeter
-  services.desktopManager.cosmic.enable = true;
-  services.displayManager.cosmic-greeter.enable = true;
+  #services.desktopManager.cosmic.enable = true;
+  #services.displayManager.cosmic-greeter.enable = true;
   
   # System state Version
   system.stateVersion = "24.05";
