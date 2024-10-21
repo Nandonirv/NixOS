@@ -53,7 +53,7 @@ sudo mkdir -p /mnt/boot
 sudo mount /dev/disk/by-label/boot /mnt/boot
 
 echo "installing NixOS..."
-
+cd /mnt
 sudo nixos-install --flake github:Nandonirv/NixOS#officepc --no-write-lock-file
 
 echo "Installation finished."
