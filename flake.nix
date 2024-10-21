@@ -19,7 +19,7 @@
       modules = [
         
         # System Configuration
-        ./configuration.nix
+        ./nixos/configuration.nix
         
         # Enable Home Manager
         home-manager.nixosModules.home-manager
