@@ -29,7 +29,7 @@
           home-manager.users.matt = import ./home-manager/home.nix;
         }
 
-        Enable Cosmic DE
+       # Enable Cosmic DE
        {
          nix.settings = {
            substituters = [ "https://cosmic.cachix.org/" ];
