@@ -5,16 +5,8 @@
 # To run:
 #
 #     sh -c "$(curl https://eipi.xyz/nixinst.sh)"
-#
-# https://eipi.xyz/blog/nixos-x86-64
-
-echo "--------------------------------------------------------------------------------"
-echo "Your attached storage devices will now be listed."
-read -p "Press 'q' to exit the list. Press enter to continue." NULL
 
 sudo fdisk -l | less
-
-echo "--------------------------------------------------------------------------------"
 echo "Detected the following devices:"
 echo
 
@@ -30,9 +22,7 @@ read -p "Which device do you wish to install on? " DEVICE
 
 DEV=${DEVICES[$(($DEVICE+1))]}
 
-read -p "How much swap space do you need in GiB (e.g. 8)? " SWAP
-
-read -p "Will now partition ${DEV} with swap size ${SWAP}GiB. Ok? Type 'go': " ANSWER
+read -p "Will now partition ${DEV}. Ok? Type 'go': " ANSWER
 
 if [ "$ANSWER" = "go" ]; then
     echo "partitioning ${DEV}..."
@@ -40,19 +30,14 @@ if [ "$ANSWER" = "go" ]; then
       echo g # new gpt partition table
 
       echo n # new partition
-      echo 3 # partition 3
+      echo 2 # partition 2
       echo   # default start sector
       echo +512M # size is 512M
 
       echo n # new partition
       echo 1 # first partition
       echo   # default start sector
-      echo -${SWAP}G # last N GiB
-
-      echo n # new partition
-      echo 2 # second partition
-      echo   # default start sector
-      echo   # default end sector
+      echo   # last N GiB
 
       echo t # set type
       echo 1 # first partition
@@ -60,10 +45,6 @@ if [ "$ANSWER" = "go" ]; then
 
       echo t # set type
       echo 2 # first partition
-      echo 19 # Linux swap
-
-      echo t # set type
-      echo 3 # first partition
       echo 1 # EFI System
 
       echo p # print layout
@@ -87,7 +68,6 @@ function align_check() {
 
 align_check 1
 align_check 2
-align_check 3
 
 echo "--------------------------------------------------------------------------------"
 echo "getting created partition names..."
@@ -101,7 +81,6 @@ done
 
 P1=${PARTITIONS[2]}
 P2=${PARTITIONS[3]}
-P3=${PARTITIONS[4]}
 
 echo "--------------------------------------------------------------------------------"
 read -p "Press enter to install NixOS." NULL
@@ -110,14 +89,9 @@ echo "making filesystem on ${P1}..."
 
 sudo mkfs.ext4 -L nixos ${P1}
 
-echo "enabling swap..."
+echo "making filesystem on ${P2}..."
 
-sudo mkswap -L swap ${P2}
-sudo swapon ${P2}
-
-echo "making filesystem on ${P3}..."
-
-sudo mkfs.fat -F 32 -n boot ${P3}            # (for UEFI systems only)
+sudo mkfs.fat -F 32 -n boot ${P2}            # (for UEFI systems only)
 
 echo "mounting filesystems..."
 
