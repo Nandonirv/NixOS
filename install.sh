@@ -56,7 +56,6 @@ else
     exit
 fi
 
-echo "--------------------------------------------------------------------------------"
 echo "checking partition alignment..."
 
 function align_check() {
@@ -69,7 +68,6 @@ function align_check() {
 align_check 1
 align_check 2
 
-echo "--------------------------------------------------------------------------------"
 echo "getting created partition names..."
 
 i=1
@@ -82,35 +80,16 @@ done
 P1=${PARTITIONS[2]}
 P2=${PARTITIONS[3]}
 
-echo "--------------------------------------------------------------------------------"
-read -p "Press enter to install NixOS." NULL
-
 echo "making filesystem on ${P1}..."
 
-sudo mkfs.ext4 -L nixos ${P1}
+sudo mkfs.xfs -L nixos ${P1}
 
 echo "making filesystem on ${P2}..."
 
-sudo mkfs.fat -F 32 -n boot ${P2}            # (for UEFI systems only)
+sudo mkfs.fat -F 32 -n boot ${P2} 
 
 echo "mounting filesystems..."
 
 sudo mount /dev/disk/by-label/nixos /mnt
-sudo mkdir -p /mnt/boot                      # (for UEFI systems only)
-sudo mount /dev/disk/by-label/boot /mnt/boot # (for UEFI systems only)
-
-echo "generating NixOS configuration..."
-
-sudo nixos-generate-config --root /mnt
-
-read -p "Press enter and the Nix configuration will be opened in nano."
-
-sudo nano /mnt/etc/nixos/configuration.nix
-
-echo "installing NixOS..."
-
-sudo nixos-install
-
-read -p "Remove installation media and press enter to reboot." NULL
-
-reboot
+sudo mkdir -p /mnt/boot                      
+sudo mount /dev/disk/by-label/boot /mnt/boot
