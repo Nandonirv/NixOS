@@ -5,25 +5,13 @@ set -euo pipefail
 # Function to list available disks
 choose_disk() {
   echo "Available disks:"
-  mapfile -t disks < <(fdisk -l | grep -E '^Disk /dev/' | grep -vE 'loop|boot' | awk '{print $2}' | sed 's/://')
-
-  if [[ ${#disks[@]} -eq 0 ]]; then
-    echo "No disks found."
-    exit 1
-  fi
-
-  for i in "${!disks[@]}"; do
-    echo "[$i] ${disks[$i]}"
+  lsblk -d -n -o NAME,SIZE,MODEL | while read -r name size model; do
+    echo " - /dev/$name: $size ($model)"
   done
 
   echo ""
-  read -rp "Select disk by number (e.g., 0): " index
-  if ! [[ "$index" =~ ^[0-9]+$ ]] || (( index < 0 || index >= ${#disks[@]} )); then
-    echo "Invalid selection."
-    exit 1
-  fi
-
-  echo "${disks[$index]}"
+  read -rp "Enter the disk to install NixOS on (e.g., sda): " disk_name
+  echo "/dev/$disk_name"
 }
 
 # Select the disk
