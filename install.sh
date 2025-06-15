@@ -1,25 +1,21 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
-# Function to list available disks
+# Trap errors for graceful debugging
+trap 'echo "Error on line $LINENO"; exit 1' ERR
+
+# Function to list and choose available disks
 choose_disk() {
   echo "Available disks:"
-  i=0
-  DEVICES=()
+  mapfile -t DEVICES < <(lsblk -ndpo NAME,TYPE | awk '$2=="disk" {print $1}')
 
-  # List disks with indices and save in array
-  while read -r device; do
-    echo "[$i] $device"
-    DEVICES[i]="$device"
-    ((i++))
-  done < <(sudo fdisk -l | grep "^Disk /dev" | awk '{print $2}' | sed 's/://')
+  for i in "${!DEVICES[@]}"; do
+    echo "[$i] ${DEVICES[i]}"
+  done
 
   echo ""
   read -rp "Select disk by number (e.g., 0): " index
-
-  # Validate input is a number within range
-  if ! [[ "$index" =~ ^[0-9]+$ ]] || (( index < 0 || index >= i )); then
+  if ! [[ "$index" =~ ^[0-9]+$ ]] || (( index < 0 || index >= ${#DEVICES[@]} )); then
     echo "Invalid selection."
     exit 1
   fi
@@ -27,54 +23,54 @@ choose_disk() {
   echo "${DEVICES[index]}"
 }
 
-# Select the disk
+# Select target disk
 DISK=$(choose_disk)
 
-# Confirm disk wipe
-echo "WARNING: This will erase all data on $DISK!"
+# Confirm destructive operation
+echo -e "\n⚠️  WARNING: This will erase ALL data on $DISK!"
 read -rp "Type 'YES' to continue: " confirm
 if [[ "$confirm" != "YES" ]]; then
   echo "Aborted."
   exit 1
 fi
 
-# Hostname and flake configuration
+# Define hostname and flake URL
 HOSTNAME="nixos"
-USER_FLAKE="https://api.mynixos.com/elcarom/nixos/archive/main.tar.gz"  # Replace with your GitHub flake
+USER_FLAKE="https://api.mynixos.com/elcarom/nixos/archive/main.tar.gz"
 
-echo "Starting NixOS install on $DISK with flake $USER_FLAKE..."
-
-# Partitioning (UEFI + ext4)
+# Partition disk using GPT and create EFI/ext4 layout
+echo "Partitioning $DISK..."
 parted --script "$DISK" \
   mklabel gpt \
   mkpart ESP fat32 1MiB 512MiB \
-  set 1 boot on \
+  set 1 esp on \
   mkpart primary ext4 512MiB 100%
 
-# Wait for /dev nodes to settle
-sleep 2
+sleep 2  # Wait for partitions to settle
 
 EFI_PART="${DISK}1"
 ROOT_PART="${DISK}2"
 
-# Format partitions with labels
-echo "Formatting EFI partition as FAT32 with label 'boot'..."
-mkfs.fat -F32 -n boot "$EFI_PART"
-
-echo "Formatting root partition as ext4 with label 'nixos'..."
+# Format partitions
+echo "Formatting partitions..."
+mkfs.fat -F32 -n BOOT "$EFI_PART"
 mkfs.ext4 -L nixos "$ROOT_PART"
 
-# Mounting
-echo "Mounting partitions..."
+# Mount
+echo "Mounting filesystems..."
 mount "$ROOT_PART" /mnt
 mkdir -p /mnt/boot
 mount "$EFI_PART" /mnt/boot
 
-# Ensure nix is installed
-nix-env -iA nixpkgs.nix || true
+# Ensure Nix is available
+if ! command -v nix >/dev/null; then
+  echo "Nix not found. Installing temporarily..."
+  curl -L https://nixos.org/nix/install | sh
+  . ~/.nix-profile/etc/profile.d/nix.sh
+fi
 
-# Install NixOS from flake
-echo "Installing NixOS..."
+# Install NixOS with flake
+echo "Installing NixOS from flake..."
 nixos-install --flake "$USER_FLAKE#$HOSTNAME" --no-root-password --option tarball-ttl 0
 
-echo "Installation complete. You may now reboot."
+echo "Installation complete. You may now reboot!"
