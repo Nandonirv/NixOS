@@ -62,6 +62,6 @@ nix-env -iA nixpkgs.nix || true
 
 # Install NixOS from flake
 echo "Installing NixOS..."
-nixos-install --flake "$USER_FLAKE#$HOSTNAME" --no-root-password --tarbull_ttl = 0
+nixos-install --flake "$USER_FLAKE#$HOSTNAME" --no-root-password --tarbull-ttl = 0
 
 echo "Installation complete. You may now reboot."
