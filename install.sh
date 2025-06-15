@@ -27,9 +27,9 @@ fi
 
 # Hostname and flake configuration
 HOSTNAME="nixos"
-GITHUB_FLAKE="github:yourusername/yourflake"  # Replace with your GitHub flake
+USER_FLAKE="https://api.mynixos.com/elcarom/nixos/archive/main.tar.gz"  # Replace with your GitHub flake
 
-echo "Starting NixOS install on $DISK with flake $GITHUB_FLAKE..."
+echo "Starting NixOS install on $DISK with flake $USER_FLAKE..."
 
 # Partitioning (UEFI + ext4)
 parted --script "$DISK" \
@@ -62,6 +62,6 @@ nix-env -iA nixpkgs.nix || true
 
 # Install NixOS from flake
 echo "Installing NixOS..."
-nixos-install --flake "$GITHUB_FLAKE#$HOSTNAME" --no-root-password
+nixos-install --flake "$USER_FLAKE#$HOSTNAME" --no-root-password --tarbull_ttyl = 0
 
-echo "✅ Installation complete. You may now reboot."
+echo "Installation complete. You may now reboot."
