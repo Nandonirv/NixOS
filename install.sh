@@ -1,95 +1,67 @@
-#!/bin/sh
-#
-# For installing NixOS having booted from the minimal USB image.
-#
-# To run:
-#
-#     sh -c "$(curl https://eipi.xyz/nixinst.sh)"
+#!/usr/bin/env bash
 
-sudo fdisk -l | less
-echo "Detected the following devices:"
-echo
+set -euo pipefail
 
-i=0
-for device in $(sudo fdisk -l | grep "^Disk /dev" | awk "{print \$2}" | sed "s/://"); do
-    echo "[$i] $device"
-    i=$((i+1))
-    DEVICES[$i]=$device
-done
+# Function to list available disks
+choose_disk() {
+  echo "Available disks:"
+  lsblk -d -n -o NAME,SIZE,MODEL | while read -r name size model; do
+    echo " - /dev/$name: $size ($model)"
+  done
 
-echo
-read -p "Which device do you wish to install on? " DEVICE
-
-DEV=${DEVICES[$(($DEVICE+1))]}
-
-read -p "Will now partition ${DEV}. Ok? Type 'go': " ANSWER
-
-if [ "$ANSWER" = "go" ]; then
-    echo "partitioning ${DEV}..."
-    (
-      echo g # new gpt partition table
-
-      echo n # new partition
-      echo 2 # partition 2
-      echo   # default start sector
-      echo +512M # size is 512M
-
-      echo n # new partition
-      echo 1 # first partition
-      echo   # default start sector
-      echo   # last N GiB
-
-      echo t # set type
-      echo 1 # first partition
-      echo 20 # Linux Filesystem
-
-      echo t # set type
-      echo 2 # first partition
-      echo 1 # EFI System
-
-      echo p # print layout
-
-      echo w # write changes
-    ) | sudo fdisk ${DEV}
-else
-    echo "cancelled."
-    exit
-fi
-
-echo "checking partition alignment..."
-
-function align_check() {
-    (
-      echo
-      echo $1
-    ) | sudo parted $DEV align-check | grep aligned | sed "s/^/partition /"
+  echo ""
+  read -rp "Enter the disk to install NixOS on (e.g., sda): " disk_name
+  echo "/dev/$disk_name"
 }
 
-align_check 1
-align_check 2
+# Select the disk
+DISK=$(choose_disk)
 
-echo "getting created partition names..."
+# Confirm disk wipe
+echo "WARNING: This will erase all data on $DISK!"
+read -rp "Type 'YES' to continue: " confirm
+if [[ "$confirm" != "YES" ]]; then
+  echo "Aborted."
+  exit 1
+fi
 
-i=1
-for part in $(sudo fdisk -l | grep $DEV | grep -v "," | awk '{print $1}'); do
-    echo "[$i] $part"
-    i=$((i+1))
-    PARTITIONS[$i]=$part
-done
+# Hostname and flake configuration
+HOSTNAME="nixos"
+GITHUB_FLAKE="github:yourusername/yourflake"  # Replace with your GitHub flake
 
-P1=${PARTITIONS[2]}
-P2=${PARTITIONS[3]}
+echo "Starting NixOS install on $DISK with flake $GITHUB_FLAKE..."
 
-echo "making filesystem on ${P1}..."
+# Partitioning (UEFI + ext4)
+parted --script "$DISK" \
+  mklabel gpt \
+  mkpart ESP fat32 1MiB 512MiB \
+  set 1 boot on \
+  mkpart primary ext4 512MiB 100%
 
-sudo mkfs.xfs -L nixos ${P1}
+# Wait for /dev nodes to settle
+sleep 2
 
-echo "making filesystem on ${P2}..."
+EFI_PART="${DISK}1"
+ROOT_PART="${DISK}2"
 
-sudo mkfs.fat -F 32 -n boot ${P2} 
+# Format partitions with labels
+echo "Formatting EFI partition as FAT32 with label 'boot'..."
+mkfs.fat -F32 -n boot "$EFI_PART"
 
-echo "mounting filesystems..."
+echo "Formatting root partition as ext4 with label 'nixos'..."
+mkfs.ext4 -L nixos "$ROOT_PART"
 
-sudo mount /dev/disk/by-label/nixos /mnt
-sudo mkdir -p /mnt/boot                      
-sudo mount /dev/disk/by-label/boot /mnt/boot
+# Mounting
+echo "Mounting partitions..."
+mount "$ROOT_PART" /mnt
+mkdir -p /mnt/boot
+mount "$EFI_PART" /mnt/boot
+
+# Ensure nix is installed
+nix-env -iA nixpkgs.nix || true
+
+# Install NixOS from flake
+echo "Installing NixOS..."
+nixos-install --flake "$GITHUB_FLAKE#$HOSTNAME" --no-root-password
+
+echo "✅ Installation complete. You may now reboot."
