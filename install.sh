@@ -52,7 +52,7 @@ ROOT_PART="${DISK}2"
 
 echo ""
 echo "Formatting partitions..."
-mkfs.fat -F32 -n BOOT "$EFI_PART"
+mkfs.fat -F32 -n boot "$EFI_PART"
 mkfs.ext4 -L nixos "$ROOT_PART"
 
 echo ""
